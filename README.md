@@ -93,4 +93,3 @@ terraform apply -auto-approve weu-low-full.tfplan
 If you have any issues, comments or want to see new features, please file an
 issue in the project repository:
 
-https://gitlab.dematic.com/cloudresdev/terraform
