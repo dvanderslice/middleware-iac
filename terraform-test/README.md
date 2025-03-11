@@ -1,6 +1,4 @@
-![Control Tower Logical](/terraform/azure/images/logical.png)
-
-# Environment as a Service Deployment of Azure Control Tower
+# Terraform for the NextGen Insights application
 
 Eventually terraform for GCP and AWS will get added here, but for now, this is
 catering for Azure only.
@@ -74,7 +72,7 @@ Deployment Steps:
 cd azure/new-virtual-wan-full
 terraform init -backend-config="backend.tfvars"
 terraform plan -var-file="backend.tfvars" -var-file="weu.tfvars" -out weu-new-full.tfplan
-terraform apply -auto-approve weu-new-full.tfplan
+terraform apply -auto-approve weu-apim.tfplan
 ```
 
 Or
@@ -84,7 +82,7 @@ Or
 cd ../lower-environment-full
 terraform init -backend-config="backend.tfvars"
 terraform plan -var-file="backend.tfvars" -var-file="weu.tfvars" -out weu-low-full.tfplan
-terraform apply -auto-approve weu-low-full.tfplan
+terraform apply -auto-approve weu-network.tfplan
 ```
 
 

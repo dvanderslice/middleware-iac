@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "firewallPolicies_eus2_dev02_fwpolicy_name": {
+            "value": null
+        },
+        "ipGroups_eus2_dev02_auth_ig_externalid": {
+            "value": null
+        },
+        "ipGroups_eus2_mul01_dev02_vnet_ipg_externalid": {
+            "value": null
+        },
+        "ipGroups_func_private_subnet_ipg_externalid": {
+            "value": null
+        },
+        "ipGroups_shared_private_subnet_ipg_externalid": {
+            "value": null
+        },
+        "ipGroups_data_private_subnet_ipg_externalid": {
+            "value": null
+        },
+        "ipGroups_storage_private_subnet_ipg_externalid": {
+            "value": null
+        },
+        "ipGroups_eus2_dev02_p2s_ig_externalid": {
+            "value": null
+        },
+        "ipGroups_eus2_dev02_pri_ig_externalid": {
+            "value": null
+        },
+        "ipGroups_eus2_dev02_shared_ig_externalid": {
+            "value": null
+        }
+    }
+}

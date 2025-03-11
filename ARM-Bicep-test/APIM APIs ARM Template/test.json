@@ -1,0 +1,66 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "env_name": {
+            "type": "string",
+            "allowedValues":[
+                "dev",
+                "stg",
+                "prd"
+            ]
+        },
+        "env_key":{
+            "type": "string",
+            "defaultValue": "01"
+
+        },
+        "azure_location": {
+            "type": "string",
+            "defaultValue": "eastus2"
+        },
+        "region_abbrevation":{
+            "type": "string",
+            "defaultValue": "eus2"
+        }
+        },
+    "variables": {
+    "subscriptionid": "[subscription().subscriptionId]",
+    "sharedresourcegroupname": "[resourcegroup().name]",
+    "mulresourcegroupname": "[concat('AppGrp-mul01-',parameters('env_name'),parameters('env_key'),'-rg')]",
+    "airesourcegroupname": "[concat('AppGrp-ai01-',parameters('env_name'),parameters('env_key'),'-rg')]",
+    "authresourcegroupname": "[concat('AppGrp-auth01-',parameters('env_name'),parameters('env_key'),'-rg')]",
+    "authfunctionappname": "[concat(parameters('region_abbrevation'),'-auth01auth01-',parameters('env_name'),parameters('env_key'),'-fa')]",
+    "authfunctionappurl": "[concat('https://',variables('authfunctionappname'),'.azurewebsites.net' )]",
+    "mulaifunctionaappname": "[concat(parameters('region_abbrevation'),'-mul01func01-',parameters('env_name'),parameters('env_key'),'-ai-fa')]",
+    "mulaifunctionappurl": "[concat('https://',variables('mulaifunctionaappname'),'.azurewebsites.net' )]",
+    "muldatareplayfunctionappname": "[concat(parameters('region_abbrevation'),'-mul01func01-',parameters('env_name'),parameters('env_key'),'-data-replay-fa')]",
+    "muldatareplayfunctionappurl": "[concat('https://',variables('muldatareplayfunctionappname'),'.azurewebsites.net' )]",
+    "existingapimsharedresourceprefix": "[concat('/subscriptions/',variables('subscriptionid'),'/resourceGroups/',variables('sharedresourcegroupname'),'/providers/Microsoft.ApiManagement/service/')]",
+    "apimname": "[concat('shared-', parameters('env_name'),parameters('env_key'),'-api')]",
+    "apimresourceid": "[concat(variables('existingapimsharedresourceprefix'),variables('apimname'))]",
+    "apimvnetname": "[concat(parameters('region_abbrevation'),'-shared-',parameters('env_name'),parameters('env_key'),'-vnet')]",
+    "apimvnetandsubnetresourceid": "[concat('/subscriptions/',variables('subscriptionid'),'/resourceGroups/',variables('sharedresourcegroupname'),'/providers/Microsoft.Network/virtualNetworks/', variables('apimvnetname'),'/subnets/shared_subnet01')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ApiManagement/service/apis",
+            "apiVersion": "2021-08-01",
+            "name": "[concat(variables('apimname'), '/analytics-blue-api')]",
+            "dependsOn": [
+                 
+            ],
+            "properties": {
+                "displayName": "analytics-blue",
+                "apiRevision": "1",
+                "description": "Core endpoint",
+                "subscriptionRequired": false,
+                "path": "blue/analytics",
+                "protocols": [
+                    "https"
+                ],
+                "isCurrent": true
+            }
+        }
+    ]
+}

@@ -1,0 +1,375 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerName": {
+            "type": "SecureString"
+        },
+        "skuName": {
+            "type": "string",
+            "defaultValue": "F1",
+            "metadata": {
+                "description": "Specifies the IotHub SKU."
+            }
+        },
+        "tier": {
+            "type": "string"
+        },
+        "routingName": {
+            "type": "string"
+        },
+        "capacityUnits": {
+            "type": "int",
+            "minValue": 1,
+            "maxValue": 1,
+            "defaultValue": 1,
+            "metadata": {
+                "description": "Specifies the number of provisioned IoT Hub units. Restricted to 1 unit for the F1 SKU. Can be set up to maximum number allowed for subscription."
+            }
+        },
+        "retentionTimeInDays": {
+            "type": "int"
+        },
+        "partitionCount": {
+            "type": "int"
+        },
+        "iotHubConsumerGroupName1": {
+            "type": "String"
+        },
+        "iotHubConsumerGroupName2": {
+            "type": "String"
+        },
+        "iotHubConsumerGroupName3": {
+            "type": "String"
+        },
+        "iotHubConsumerGroupName4": {
+            "type": "String"
+        },
+        "routingCondition": {
+            "type": "String"
+        },
+        "utcShortValue": {
+            "type": "string",
+            "defaultValue": "[utcNow('d')]"
+        },
+        "eventHubskuName": {
+            "type": "String"
+        },
+        "skuTier": {
+            "type": "String"
+        },
+        "skuCapacity": {
+            "type": "int"
+        },
+        "eventhubMRID": {
+            "type": "int"
+        },
+        "eventhubPartitionCount": {
+            "type": "int"
+        },
+        "rgAbbr": {
+           "type": "string",
+           "metadata": {
+                "description": "description"
+            }
+        },
+        "regionAbbr": {
+           "type": "string",
+           "metadata": {
+                "description": "description"
+            }
+        },
+        "resourceVersion": {
+           "type": "string",
+           "metadata": {
+                "description": "description"
+            }
+        },
+        "stage": {
+           "type": "string",
+           "metadata": {
+                "description": "description"
+            }
+        }
+    },
+    "variables": {
+        "IotHubName": "[concat(parameters('regionAbbr'), '-', parameters('rgAbbr'), 'ihub', parameters('resourceVersion'), '-', parameters('stage'), '-io')]",
+        "authorizationRuleName": "[concat('iothubroutes_',variables('iotHubName'))]",
+        "eventProcessingAuthorizationRuleName": "[concat('event_processing_fa_',variables('iotHubName'))]",
+        "namespaceName": "[concat(parameters('regionAbbr'), '-', parameters('rgAbbr'), 'device', parameters('resourceVersion'), '-', parameters('stage'), '-ns')]",
+        "eventHubName": "[concat(parameters('regionAbbr'), '-', parameters('rgAbbr'), 'device', parameters('resourceVersion'), '-', parameters('stage'), '-hub')]",
+        "eventHubCGNameGeneric": "[concat(parameters('regionAbbr'), '-', parameters('rgAbbr'), 'device', parameters('resourceVersion'), '-', parameters('stage'), '-cg')]",
+        "eventHubCGNameDEX01": "[concat(parameters('rgAbbr'), 'dex01')]",
+        "eventHubCGNameDEX02": "[concat(parameters('rgAbbr'), 'dex02')]",
+        "eventHubCGNameDEX03": "[concat(parameters('rgAbbr'), 'dex03')]",
+        "eventHubCGNameFA01": "[concat(parameters('rgAbbr'), 'fa01')]",
+        "storageAccountName": "[concat(parameters('regionAbbr'), parameters('rgAbbr'), 'stor', parameters('resourceVersion'), substring(parameters('stage'), 0, 1), '02', 'sa')]",
+        "authorizationRulesId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('namespaceName'), variables('eventHubName'), variables('authorizationRuleName'))]",
+        "iotCGName1": "[concat(variables('iotHubName'), '/events/', parameters('iotHubConsumerGroupName1'))]",
+        "iotCGName2": "[concat(variables('iotHubName'), '/events/', parameters('iotHubConsumerGroupName2'))]",
+        "iotCGName3": "[concat(variables('iotHubName'), '/events/', parameters('iotHubConsumerGroupName3'))]",
+        "iotCGName4": "[concat(variables('iotHubName'), '/events/', parameters('iotHubConsumerGroupName4'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.EventHub/namespaces",
+            "apiVersion": "2017-04-01",
+            "name": "[variables('namespaceName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "Application": "[resourceGroup().tags['Application']]",
+                "CostCenter": "[resourceGroup().tags['CostCenter']]",
+                "Contact": "[resourceGroup().tags['Contact']]",
+                "CreatedBy": "[resourceGroup().tags['CreatedBy']]",
+                "CreatedOn": "[parameters('utcShortValue')]",
+                "Customer": "[resourceGroup().tags['Customer']]",
+                "Environment": "[resourceGroup().tags['Environment']]",
+                "Lifetime": "[resourceGroup().tags['Lifetime']]",
+                "Owner": "[resourceGroup().tags['Owner']]",
+                "Role": "[resourceGroup().tags['Role']]"
+            },
+            "sku": {
+                "name": "[parameters('eventHubskuName')]",
+                "tier": "[parameters('skuTier')]",
+                "capacity": "[parameters('skuCapacity')]"
+            },
+            "properties": {
+                "zoneRedundant": false,
+                "isAutoInflateEnabled": false,
+                "maximumThroughputUnits": 0,
+                "kafkaEnabled": true
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(variables('namespaceName'), '/', variables('eventHubName'))]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', variables('namespaceName'))]"
+            ],
+            "properties": {
+                "messageRetentionInDays": "[parameters('eventhubMRID')]",
+                "partitionCount": "[parameters('eventhubPartitionCount')]",
+                "status": "Active"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[variables('eventHubCGNameGeneric')]",
+                    "type": "consumergroups",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('namespaceName'), variables('eventHubName'))]",
+                        "[resourceId('Microsoft.EventHub/namespaces', variables('namespaceName'))]"
+                    ],
+                    "properties": {
+                        "userMetadata": "User Metadata goes here"
+                    }
+                },
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[variables('eventHubCGNameDEX01')]",
+                    "type": "consumergroups",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('namespaceName'), variables('eventHubName'))]",
+                        "[resourceId('Microsoft.EventHub/namespaces', variables('namespaceName'))]"
+                    ],
+                    "properties": {
+                        "userMetadata": "User Metadata goes here"
+                    }
+                },
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[variables('eventHubCGNameDEX02')]",
+                    "type": "consumergroups",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('namespaceName'), variables('eventHubName'))]",
+                        "[resourceId('Microsoft.EventHub/namespaces', variables('namespaceName'))]"
+                    ],
+                    "properties": {
+                        "userMetadata": "User Metadata goes here"
+                    }
+                },
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[variables('eventHubCGNameDEX03')]",
+                    "type": "consumergroups",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('namespaceName'), variables('eventHubName'))]",
+                        "[resourceId('Microsoft.EventHub/namespaces', variables('namespaceName'))]"
+                    ],
+                    "properties": {
+                        "userMetadata": "User Metadata goes here"
+                    }
+                },
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[variables('eventHubCGNameFA01')]",
+                    "type": "consumergroups",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('namespaceName'), variables('eventHubName'))]",
+                        "[resourceId('Microsoft.EventHub/namespaces', variables('namespaceName'))]"
+                    ],
+                    "properties": {
+                        "userMetadata": "User Metadata goes here"
+                    }
+                },
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[variables('authorizationRuleName')]",
+                    "type": "authorizationRules",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('namespaceName'), variables('eventHubName'))]",
+                        "[resourceId('Microsoft.EventHub/namespaces', variables('namespaceName'))]"
+                    ],
+                    "properties": {
+                        "rights": ["Send"]
+                    }
+                },
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[variables('eventProcessingAuthorizationRuleName')]",
+                    "type": "authorizationRules",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('namespaceName'), variables('eventHubName'))]",
+                        "[resourceId('Microsoft.EventHub/namespaces', variables('namespaceName'))]"
+                    ],
+                    "properties": {
+                        "rights": ["Send", "Manage", "Listen"]
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Devices/IotHubs",
+            "apiVersion": "2018-04-01",
+            "name": "[variables('IotHubName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "Application": "[resourceGroup().tags['Application']]",
+                "CostCenter": "[resourceGroup().tags['CostCenter']]",
+                "Contact": "[resourceGroup().tags['Contact']]",
+                "CreatedBy": "[resourceGroup().tags['CreatedBy']]",
+                "CreatedOn": "[parameters('utcShortValue')]",
+                "Customer": "[resourceGroup().tags['Customer']]",
+                "Environment": "[resourceGroup().tags['Environment']]",
+                "Lifetime": "[resourceGroup().tags['Lifetime']]",
+                "Owner": "[resourceGroup().tags['Owner']]",
+                "Role": "[resourceGroup().tags['Role']]"
+            },
+            "sku": {
+                "name": "[parameters('skuName')]",
+                "capacity": "[parameters('capacityUnits')]",
+                "tier": "[parameters('tier')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('namespaceName'), variables('eventHubName'))]"
+            ],
+            "properties": {
+                "ipFilterRules": [],
+                "eventHubEndpoints": {
+                    "events": {
+                        "retentionTimeInDays": "[parameters('retentionTimeInDays')]",
+                        "partitionCount": "[parameters('partitionCount')]"
+                    },
+                    "operationsMonitoringEvents": {
+                        "retentionTimeInDays": "[parameters('retentionTimeInDays')]",
+                        "partitionCount": "[parameters('partitionCount')]"
+                    }
+                },
+                "routing": {
+                    "endpoints": {
+                        "serviceBusQueues": [],
+                        "serviceBusTopics": [],
+                        "eventHubs": [
+                            {
+                                "connectionString": "[listKeys(variables('authorizationRulesId'), '2017-04-01').primaryConnectionString]",
+                                "name": "[parameters('routingName')]",
+                                "subscriptionId": "[subscription().subscriptionId]",
+                                "resourceGroup": "[resourceGroup().name]"
+                            }
+                        ],
+                        "storageContainers": []
+                    },
+                    "routes": [
+                        {
+                            "name": "[parameters('routingName')]",
+                            "source": "DeviceMessages",
+                            "condition": "[parameters('routingCondition')]",
+                            "endpointNames": [
+                                "[parameters('routingName')]"
+                            ],
+                            "isEnabled": true
+                        }
+                    ],
+                    "fallbackRoute": {
+                        "name": "$fallback",
+                        "source": "DeviceMessages",
+                        "condition": "true",
+                        "endpointNames": [
+                            "events"
+                        ],
+                        "isEnabled": true
+                    }
+                },
+                "storageEndpoints": {
+                    "$default": {
+                        "sasTtlAsIso8601": "PT1H",
+                        "connectionString": "[Concat('DefaultEndpointsProtocol=https;AccountName=',variables('StorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
+                        "containerName": "[parameters('containerName')]"
+                    }
+                },
+                "messagingEndpoints": {
+                    "fileNotifications": {
+                        "lockDurationAsIso8601": "PT1M",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "enableFileUploadNotifications": false,
+                "cloudToDevice": {
+                    "maxDeliveryCount": 10,
+                    "defaultTtlAsIso8601": "PT1H",
+                    "feedback": {
+                        "lockDurationAsIso8601": "PT5S",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "features": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Devices/iotHubs/eventhubEndpoints/ConsumerGroups",
+            "apiVersion": "2018-04-01",
+            "name": "[variables('iotCGName1')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Devices/iotHubs/eventhubEndpoints/ConsumerGroups",
+            "apiVersion": "2018-04-01",
+            "name": "[variables('iotCGName2')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Devices/iotHubs/eventhubEndpoints/ConsumerGroups",
+            "apiVersion": "2018-04-01",
+            "name": "[variables('iotCGName3')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Devices/iotHubs/eventhubEndpoints/ConsumerGroups",
+            "apiVersion": "2018-04-01",
+            "name": "[variables('iotCGName4')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
+            ]
+        }
+    ]
+}

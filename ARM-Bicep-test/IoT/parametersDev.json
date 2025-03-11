@@ -1,0 +1,69 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerName": {
+            "value": "procmessages"
+        },
+        "rgAbbr": {
+            "value": "cus01"
+        },
+        "regionAbbr": {
+            "value": "eus2"
+        },
+        "resourceVersion": {
+            "value": "01"
+        },
+        "stage": {
+            "value": "dev02"
+        },
+        "skuName": {
+            "value": "S2"
+        },
+        "capacityUnits": {
+            "value": 1
+        },
+        "retentionTimeInDays": {
+            "value": 1
+        },
+        "partitionCount": {
+            "value": 4
+        },
+        "iotHubConsumerGroupName1": {
+            "value": "functionapp001"
+        },
+        "iotHubConsumerGroupName2": {
+            "value": "powerbionline001"
+        },
+        "iotHubConsumerGroupName3": {
+            "value": "telemetry.connectagenttranslator"
+        },
+        "iotHubConsumerGroupName4": {
+            "value": "cus2filefunctionapp001"
+        },
+        "routingName": {
+            "value": "deviceupdate001"
+        },
+        "routingCondition": {
+            "value": "$contentType = 'application/json' and $body.deviceUpdate = 1"
+        },
+        "tier": {
+            "value": "Standard"
+        },
+        "eventHubskuName": {
+            "value": "Standard"
+        },
+        "skuTier": {
+            "value": "Standard"
+        },
+        "skuCapacity": {
+            "value": 1
+        },
+        "eventhubMRID": {
+            "value": 1
+        },
+        "eventhubPartitionCount": {
+            "value": 4
+        }
+    }
+}

@@ -1,0 +1,4 @@
+terraform/azure/new-virtual-wan-full/variables.tf
+terraform/azure/new-virtual-wan-full/provider.tf
+terraform/azure/lockdownstorage/lockdownstorage.tf
+terraform/azure/new-virtual-wan-full/provider.tf

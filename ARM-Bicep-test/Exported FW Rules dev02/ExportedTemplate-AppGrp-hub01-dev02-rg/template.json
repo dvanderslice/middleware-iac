@@ -1,0 +1,2130 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "firewallPolicies_eus2_dev02_fwpolicy_name": {
+            "defaultValue": "eus2-dev02-fwpolicy",
+            "type": "String"
+        },
+        "ipGroups_eus2_dev02_auth_ig_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/eus2-dev02-auth-ig",
+            "type": "String"
+        },
+        "ipGroups_eus2_mul01_dev02_vnet_ipg_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/eus2-mul01-dev02-vnet-ipg",
+            "type": "String"
+        },
+        "ipGroups_func_private_subnet_ipg_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/func_private_subnet-ipg",
+            "type": "String"
+        },
+        "ipGroups_shared_private_subnet_ipg_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/shared_private_subnet-ipg",
+            "type": "String"
+        },
+        "ipGroups_data_private_subnet_ipg_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/data_private_subnet-ipg",
+            "type": "String"
+        },
+        "ipGroups_storage_private_subnet_ipg_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/storage_private_subnet-ipg",
+            "type": "String"
+        },
+        "ipGroups_eus2_dev02_p2s_ig_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/eus2-dev02-p2s-ig",
+            "type": "String"
+        },
+        "ipGroups_eus2_dev02_pri_ig_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/eus2-dev02-pri-ig",
+            "type": "String"
+        },
+        "ipGroups_eus2_dev02_shared_ig_externalid": {
+            "defaultValue": "/subscriptions/7561e71a-f6ea-4fbb-b139-801780a9d29d/resourceGroups/AppGrp-hub01-dev02-rg/providers/Microsoft.Network/ipGroups/eus2-dev02-shared-ig",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/firewallPolicies",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('firewallPolicies_eus2_dev02_fwpolicy_name')]",
+            "location": "eastus2",
+            "tags": {
+                "application": "foundations",
+                "contact": "dl-global-digitalsolutions-dev@dematic.com",
+                "costcenter": "550164",
+                "createdby": "digitalsolutions-rd@dematic.com",
+                "createdon": "2021-12-14",
+                "customer": "digitalsolutions",
+                "environment": "dev",
+                "lifetime": "perpetual",
+                "owner": "jason.higgs@dematic.com",
+                "program": "CS Growth",
+                "project": "Insights NextGen",
+                "role": "networking"
+            },
+            "properties": {
+                "sku": {
+                    "tier": "Standard"
+                },
+                "threatIntelMode": "Alert",
+                "dnsSettings": {
+                    "servers": [],
+                    "enableProxy": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '/Auth-Service-Endpoint-Access')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'))]"
+            ],
+            "properties": {
+                "priority": 1800,
+                "ruleCollections": [
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "auth-to-mul-pri",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "auth-service-endpoint-blob-asp",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "Storage",
+                                    "AppService",
+                                    "AppServiceManagement",
+                                    "ApiManagement",
+                                    "ApplicationInsightsAvailability",
+                                    "AzurePlatformDNS"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "auth-to-associated-blob",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            }
+                        ],
+                        "name": "Auth-Service-Endpoint-Network-Outbound",
+                        "priority": 100
+                    },
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "auth-fa-to-external",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.visualstudio.com",
+                                    "*.sendgrid.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "auth-to-storage-apim",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.windows.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            }
+                        ],
+                        "name": "Auth-Service-Endpoint-Application-Access",
+                        "priority": 110
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '/DataTier-Private-Endpoint-Access')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'))]"
+            ],
+            "properties": {
+                "priority": 1600,
+                "ruleCollections": [
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-monitoring",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "gcs.prod.monitoring.core.windows.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-update-management",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "ctldl.windowsupdate.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-digicert",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.digicert.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-mspki",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "ocsp.msocsp.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-mscrl",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "mscrl.microsoft.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-crl",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "crl.microsoft.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-servicebus",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.servicebus.windows.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-core",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    },
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.windows.net",
+                                    "*.windows.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-microsoft",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    },
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.microsoft.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-microsoft-ppe",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.microsoft-ppe.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-testconnect",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    },
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.msftconnecttest.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-ha-telemetry",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    },
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "eastus2-shared.prod.warm.ingest.monitor.core.windows.net",
+                                    "qos.prod.warm.ingest.monitor.core.windows.net",
+                                    "gsm2083179686eh.servicebus.windows.net",
+                                    "s3-us-west-2.amazonaws.comrt.services.visualstudio.com",
+                                    "global.prod.microsoftmetrics.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-cluster-telemetry",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*prod.microsoftmetrics.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-login",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "login.live.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-backend-ha",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "azureprofilerfrontdoor.cloudapp.net",
+                                    "*.vault.azure.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-backend-ha2",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "azureprofiler.trafficmanager.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-keyvault",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.azure.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-passport",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.passport.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "kusto-to-nuget",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "www.nuget.org"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            }
+                        ],
+                        "name": "Mul-Kusto-Private-Access-Application",
+                        "priority": 110
+                    },
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "kusto-to-eventgrid-keyvault",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "AzureEventGrid",
+                                    "EventHub",
+                                    "AzureKeyVault",
+                                    "Storage",
+                                    "AzureDataLake",
+                                    "AzureMonitor",
+                                    "AzureActiveDirectory"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "kusto-to-time",
+                                "ipProtocols": [
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "*"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "123"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "kusto-ca-access",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "*"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "80"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "kusto-health-monitoring-eus2",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [
+                                    "104.46.110.170",
+                                    "40.70.147.14",
+                                    "40.84.38.74",
+                                    "52.247.116.27",
+                                    "52.247.117.99",
+                                    "52.177.182.76",
+                                    "52.247.117.144",
+                                    "52.247.116.99",
+                                    "52.247.67.200",
+                                    "52.247.119.96",
+                                    "52.247.70.70"
+                                ],
+                                "sourceIpGroups": [],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "dev-kusto-access",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [
+                                    "*"
+                                ],
+                                "sourceIpGroups": [],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "test-pri-rule1",
+                                "ipProtocols": [
+                                    "Any"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_pri_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_pri_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "test-servicetag-rule",
+                                "ipProtocols": [
+                                    "Any"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_pri_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "ApiManagement",
+                                    "AzureActiveDirectory",
+                                    "AzureMonitor",
+                                    "BatchNodeManagement",
+                                    "AzureActiveDirectoryDomainServices",
+                                    "ServiceFabric",
+                                    "SqlManagement",
+                                    "AzureFrontDoor.Backend",
+                                    "AzurePlatformDNS",
+                                    "AzurePlatformIMDS",
+                                    "ActionGroup",
+                                    "AzurePlatformLKM",
+                                    "AppService",
+                                    "AppServiceManagement",
+                                    "ApplicationInsightsAvailability",
+                                    "AzureAdvancedThreatProtection",
+                                    "AzureBackup",
+                                    "AzureCloud",
+                                    "AzureBotService",
+                                    "AzureCognitiveSearch",
+                                    "AzureConnectors",
+                                    "AzureContainerRegistry",
+                                    "AzureCosmosDB",
+                                    "AzureDataExplorerManagement",
+                                    "AzureDataLake",
+                                    "AzureDatabricks",
+                                    "AzureDevSpaces",
+                                    "AzureEventGrid",
+                                    "AzureFrontDoor.FirstParty",
+                                    "AzureFrontDoor.Frontend",
+                                    "AzureInformationProtection",
+                                    "AzureIoTHub",
+                                    "AzureKeyVault",
+                                    "AzureMachineLearning",
+                                    "AzurePortal",
+                                    "AzureOpenDatasets",
+                                    "AzureResourceManager",
+                                    "AzureSignalR",
+                                    "AzureSiteRecovery",
+                                    "CognitiveServicesManagement",
+                                    "AzureTrafficManager",
+                                    "DataFactory",
+                                    "DataFactoryManagement",
+                                    "Dynamics365ForMarketingEmail",
+                                    "EventHub",
+                                    "GuestAndHybridManagement",
+                                    "HDInsight",
+                                    "LogicApps",
+                                    "LogicAppsManagement",
+                                    "MicrosoftCloudAppSecurity",
+                                    "MicrosoftContainerRegistry",
+                                    "PowerQueryOnline",
+                                    "ServiceBus",
+                                    "Sql",
+                                    "Storage",
+                                    "WindowsVirtualDesktop"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            }
+                        ],
+                        "name": "Mul-Kusto-Private-Access-Network",
+                        "priority": 100
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '/', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '-rcg')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'))]"
+            ],
+            "properties": {
+                "priority": 1000,
+                "ruleCollections": [
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [],
+                        "name": "insights-network-rc02",
+                        "priority": 1000
+                    },
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [],
+                        "name": "insights-network-rc01",
+                        "priority": 1100
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '/Functions-Private-Endpoint-Access')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'))]"
+            ],
+            "properties": {
+                "priority": 1400,
+                "ruleCollections": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '/Mul-Service-Endpoint-Outbound')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'))]"
+            ],
+            "properties": {
+                "priority": 1700,
+                "ruleCollections": [
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "mul-to-blob",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.core.windows.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "mul-to-s3",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    },
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.amazonaws.com",
+                                    "s3-us-west-2.amazonaws.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "mul-azure-ad-sso-access",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    },
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.microsoftonline.com",
+                                    "*visualstudio.com",
+                                    "*.windows.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "Mul-to-dev-ext",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "rt.services.visualstudio.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "mul-to-appinsights",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.applicationinsights.azure.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "mul-to-dematic",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.dematic.com",
+                                    "*.azurefd.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "mul-to-edge-sendgrid",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.azureedge.net",
+                                    "*.sendgrid.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            }
+                        ],
+                        "name": "Mul-Service-Endpoint-Access-Application",
+                        "priority": 2000
+                    },
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-to-blob",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "Storage",
+                                    "AzurePlatformDNS",
+                                    "ApiManagement"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443",
+                                    "445"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-to-cosmos",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "AzureCosmosDB",
+                                    "Sql"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "1433",
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-to-kusto-management",
+                                "ipProtocols": [
+                                    "UDP",
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "AzureDataExplorerManagement"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "80",
+                                    "443",
+                                    "5671"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-to-kusto-monitoring",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "52.188.111.204",
+                                    "104.46.110.170",
+                                    "40.70.147.14",
+                                    "40.84.38.74",
+                                    "52.247.116.27",
+                                    "52.247.117.99",
+                                    "52.177.182.76",
+                                    "52.247.117.144",
+                                    "52.247.116.99",
+                                    "52.247.67.200",
+                                    "52.247.119.96",
+                                    "52.247.70.70"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443",
+                                    "80",
+                                    "12000"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-to-IoT-Redis",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "AzureIoTHub"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "https-mul-to-pri-network",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-to-pri-https",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-to-pri-vnet-integration",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "10255"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-functions-to-redis",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "10000"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-functions-to-storage-public",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "Storage",
+                                    "Storage.EastUS2"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443",
+                                    "445"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-functions-to-storage-private",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443",
+                                    "445"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-to-pri",
+                                "ipProtocols": [
+                                    "Any"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            }
+                        ],
+                        "name": "MUL-Service-Endpoint-Outbound-Network",
+                        "priority": 1300
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '/Point-to-Site-VPN-Access')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'))]"
+            ],
+            "properties": {
+                "priority": 2100,
+                "ruleCollections": [
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "client-vpn-to-https-pri-vnet",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_pri_ig_externalid')]",
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "client-vpn-to-https-azure-servicetags",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "ApiManagement",
+                                    "AzureFrontDoor.Backend",
+                                    "AppService",
+                                    "AppServiceManagement",
+                                    "AzureFrontDoor.Frontend",
+                                    "AzureKeyVault",
+                                    "AzureIoTHub",
+                                    "Storage.EastUS2",
+                                    "Storage.WestEurope"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "client-vpn-to-APIM-Management",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "ApiManagement"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443",
+                                    "3443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "client-vpn-to-APIM-Internal",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443",
+                                    "3443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "client-vpn-to-servicetags",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "AzureDataExplorerManagement",
+                                    "AzureKeyVault",
+                                    "Storage",
+                                    "ServiceBus",
+                                    "MicrosoftContainerRegistry",
+                                    "EventHub",
+                                    "AzureTrafficManager",
+                                    "AzureResourceManager",
+                                    "AzurePortal",
+                                    "AzureDevSpaces",
+                                    "AzureEventGrid",
+                                    "AzureFrontDoor.FirstParty",
+                                    "AzureFrontDoor.Frontend",
+                                    "AzureIoTHub",
+                                    "AzureCloud",
+                                    "AppServiceManagement",
+                                    "AppService",
+                                    "AzurePlatformDNS",
+                                    "AzurePlatformIMDS",
+                                    "AzurePlatformLKM",
+                                    "AzureFrontDoor.Backend",
+                                    "AzureMonitor",
+                                    "AzureActiveDirectory",
+                                    "ApiManagement"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            }
+                        ],
+                        "name": "client-vpn-private-access",
+                        "priority": 1200
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '/shared-APIM-Access')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'))]"
+            ],
+            "properties": {
+                "priority": 1100,
+                "ruleCollections": [
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "Dependency on Azure Storage",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "Storage"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443",
+                                    "445"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "Access to Azure SQL endpoints",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "Sql"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "1433"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "Access to Azure Key Vault",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "AzureKeyVault"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "Access to FrontDoor Probes",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "AzureFrontDoor.Backend",
+                                    "AzureFrontDoor.FirstParty",
+                                    "AzureFrontDoor.Frontend"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "Redis",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [
+                                    "*"
+                                ],
+                                "sourceIpGroups": [],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "6381-6383"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "SMTP",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [
+                                    "smtpi-co1.msn.com"
+                                ],
+                                "destinationPorts": [
+                                    "25",
+                                    "587",
+                                    "25028"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "AzureAD-SSO",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [
+                                    "login.windows.net"
+                                ],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "Monitoring",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [
+                                    "gcs.prod.monitoring.core.windows.net"
+                                ],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "HA-Pair-Telemetry",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [
+                                    "eastus2-shared.prod.warm.ingest.monitor.core.windows.net"
+                                ],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "Patching",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [
+                                    "ctldl.windowsupdate.com"
+                                ],
+                                "destinationPorts": [
+                                    "80"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "HA-Pair-Monitoring",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [
+                                    "prod3-black.prod.microsoftmetrics.com"
+                                ],
+                                "destinationPorts": [
+                                    "443"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "Auth-Private-VNET-Access",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_pri_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "shared-apim-DNS",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [
+                                    "AzurePlatformDNS"
+                                ],
+                                "destinationIpGroups": [],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "53"
+                                ]
+                            }
+                        ],
+                        "name": "Shared-APIM-Outbound-Access",
+                        "priority": 1000
+                    },
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "Azure-Telemetry-1",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    },
+                                    {
+                                        "protocolType": "Http",
+                                        "port": 80
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.windows.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "Azure-Telemetry-2",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    },
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 1886
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.microsoftmetrics.com"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "Azure-Telemetry-3",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 1886
+                                    },
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 445
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.monitoring.core.windows.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ]
+                            },
+                            {
+                                "ruleType": "ApplicationRule",
+                                "name": "mul-inbound",
+                                "protocols": [
+                                    {
+                                        "protocolType": "Https",
+                                        "port": 443
+                                    }
+                                ],
+                                "fqdnTags": [],
+                                "webCategories": [],
+                                "targetFqdns": [
+                                    "*.azure-api.net"
+                                ],
+                                "targetUrls": [],
+                                "terminateTLS": false,
+                                "sourceAddresses": [],
+                                "destinationAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ]
+                            }
+                        ],
+                        "name": "Shared-APIM-Outbound-Access-Application",
+                        "priority": 1100
+                    },
+                    {
+                        "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                        "action": {
+                            "type": "Allow"
+                        },
+                        "rules": [
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "p2s-access",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "pri-access",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_pri_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "shared-apim-DNS-inbound",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [
+                                    "168.63.129.16"
+                                ],
+                                "sourceIpGroups": [],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "53"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "shared-apim-dns-inbound",
+                                "ipProtocols": [
+                                    "TCP",
+                                    "UDP"
+                                ],
+                                "sourceAddresses": [
+                                    "168.63.129.16"
+                                ],
+                                "sourceIpGroups": [],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_shared_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_pri_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_auth_ig_externalid')]",
+                                    "[parameters('ipGroups_data_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_func_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]",
+                                    "[parameters('ipGroups_storage_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "*"
+                                ]
+                            },
+                            {
+                                "ruleType": "NetworkRule",
+                                "name": "mul-apim-access",
+                                "ipProtocols": [
+                                    "TCP"
+                                ],
+                                "sourceAddresses": [],
+                                "sourceIpGroups": [
+                                    "[parameters('ipGroups_eus2_dev02_p2s_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_dev02_pri_ig_externalid')]",
+                                    "[parameters('ipGroups_eus2_mul01_dev02_vnet_ipg_externalid')]"
+                                ],
+                                "destinationAddresses": [],
+                                "destinationIpGroups": [
+                                    "[parameters('ipGroups_shared_private_subnet_ipg_externalid')]"
+                                ],
+                                "destinationFqdns": [],
+                                "destinationPorts": [
+                                    "443",
+                                    "5671"
+                                ]
+                            }
+                        ],
+                        "name": "shared-apim-inbound-access",
+                        "priority": 100
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('firewallPolicies_eus2_dev02_fwpolicy_name'), '/Storage-Private-Endpoint-Access')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicies_eus2_dev02_fwpolicy_name'))]"
+            ],
+            "properties": {
+                "priority": 1500,
+                "ruleCollections": []
+            }
+        }
+    ]
+}

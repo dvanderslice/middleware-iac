@@ -1,0 +1,693 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "env_name": {
+            "type": "string",
+            "allowedValues":[
+                "dev",
+                "stg",
+                "prd"
+            ]
+        },
+        "env_key":{
+            "type": "string",
+            "defaultValue": "01"
+
+        },
+        "azure_location": {
+            "type": "string",
+            "defaultValue": "eastus2"
+        },
+        "region_abbreviation":{
+            "type": "string",
+            "defaultValue": "eus2"
+        },
+
+        "resource_version":{
+            "type": "string",
+            "defaultValue": "01"
+        }
+        },
+    "variables": {
+    "subscriptionid": "[subscription().subscriptionId]",
+    "mulresourcegroupname": "[resourcegroup().name]",
+    "airesourcegroupname": "[concat('AppGrp-ai',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-rg')]",
+    "authresourcegroupname": "[concat('AppGrp-auth',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-rg')]",
+    "authfunctionappname": "[concat(parameters('region_abbreviation'),'-auth',parameters('resource_version'),'auth',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-fa')]",
+    "authfunctionappurl": "[concat('https://',variables('authfunctionappname'),'.azurewebsites.net' )]",
+    "mulfunctionaspname": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-asp')]",
+    "mulfunctionappaspid": "[concat('/subscriptions/',variables('subscriptionid'),'/resourceGroups/',variables('mulresourcegroupname'),'/providers/Microsoft.Web/serverFarms/', variables('mulfunctionaspname'))]",
+    "mulcorefabluename": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-core-fa-blue')]",
+    "mulcorefagreenname": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-core-fa-green')]",
+    "mulgqlgatefabluename": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-gql-gate-fa-blue')]",
+    "mulgqlgatefagreenname": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-gql-gate-fa-green')]",
+    "mulnotificationsfaname": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-notifications-fa')]",
+    "mulnotificationsbluefaname": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-notifications-fa-blue')]",
+    "mulnotificationsgreenfaname": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-notifications-fa-green')]",
+    "mulnuifabluename": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-nui-fa-blue')]",
+    "mulnuifagreenname": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-nui-fa-green')]",
+    "customexportername": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'func',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-custom-exporter-fa')]",
+    "redisname": "[concat(parameters('region_abbreviation'),'cus',parameters('env_name'),parameters('env_key'),'rc')]",
+    "deviceprovisioningservicename": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-dp')]",
+    "webpubsubservice": "[concat(parameters('region_abbreviation'),'-mul',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'),'-pub')]"
+    },
+    "resources": [
+      
+        
+        
+        {
+            "type": "Microsoft.Cache/redisEnterprise/databases",
+            "apiVersion": "2021-08-01",
+            "name": "[concat(variables('redisname'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Cache/redisEnterprise', variables('redisname'))]"
+            ],
+            "properties": {
+                "clientProtocol": "Encrypted",
+                "port": 10000,
+                "clusteringPolicy": "OSSCluster",
+                "evictionPolicy": "NoEviction",
+                "modules": [
+                    {
+                        "name": "RedisTimeSeries"
+                    },
+                    {
+                        "name": "RedisBloom"
+                    },
+                    {
+                        "name": "RediSearch"
+                    }
+                ],
+                "persistence": {
+                    "aofEnabled": true,
+                    "rdbEnabled": false,
+                    "aofFrequency": "1s",
+                    "rdbFrequency": "1h"
+                }
+            }
+        },          
+        
+        
+        /*{
+            "type": "Microsoft.Devices/provisioningServices/certificates",
+            "apiVersion": "2021-10-15",
+            "name": "[concat(variables('deviceprovisioningservicename'), '/mul',parameters('resource_version'),'-',parameters('env_name'),parameters('env_key'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Devices/provisioningServices', variables('deviceprovisioningservicename'))]"
+            ]
+        },
+        
+        {
+            "type": "Microsoft.SignalRService/WebPubSub/hubs",
+            "apiVersion": "2021-10-01",
+            "name": "[concat(variables('webpubsubservice'), '/chat04')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.SignalRService/WebPubSub', variables('webpubsubservice'))]"
+            ],
+            "properties": {
+                "eventHandlers": [
+                    {
+                        "userEventPattern": "*",
+                        "systemEvents": [
+                            "connect",
+                            "connected",
+                            "disconnected"
+                        ],
+                        "auth": {
+                            "type": "None",
+                            "managedIdentity": {}
+                        }
+                    }
+                ],
+                "anonymousConnectPolicy": "deny"
+            }
+        },*/
+        {
+            "type": "Microsoft.SignalRService/WebPubSub/hubs",
+            "apiVersion": "2021-10-01",
+            "name": "[concat(variables('webpubsubservice'), '/chat04_local')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.SignalRService/WebPubSub', variables('webpubsubservice'))]"
+            ],
+            "properties": {
+                "eventHandlers": [
+                    {
+                        "urlTemplate": "https://340b-73-82-170-154.ngrok.io/api/chat/upstream",
+                        "userEventPattern": "*",
+                        "systemEvents": [
+                            "connect",
+                            "connected",
+                            "disconnected"
+                        ],
+                        "auth": {
+                            "type": "None",
+                            "managedIdentity": {}
+                        }
+                    }
+                ],
+                "anonymousConnectPolicy": "deny"
+            }
+        },
+        {
+            "type": "Microsoft.Devices/provisioningServices",
+            "apiVersion": "2021-10-15",
+            "name": "[variables('deviceprovisioningservicename')]",
+            "location": "[parameters('azure_location')]",
+            "sku": {
+                "name": "S1",
+                "tier": "Standard",
+                "capacity": 1
+            },
+            "properties": {
+                "iotHubs": [
+                ],
+                "allocationPolicy": "Hashed"
+            }
+        },
+        
+        
+        
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulcorefabluename')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulcorefabluename'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulcorefabluename'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": -1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 3,
+                    "minimumElasticInstanceCount": 0
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        
+        
+        
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulcorefagreenname')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulcorefagreenname'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulcorefagreenname'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": -1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 8,
+                    "minimumElasticInstanceCount": 1
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulgqlgatefabluename')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulgqlgatefabluename'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulgqlgatefabluename'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": -1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 0,
+                    "minimumElasticInstanceCount": 0
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        
+        
+        
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulgqlgatefagreenname')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            "tags": {
+            },
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulgqlgatefagreenname'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulgqlgatefagreenname'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": -1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 0,
+                    "minimumElasticInstanceCount": 0
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulnotificationsbluefaname')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            "tags": {
+            },
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulnotificationsbluefaname'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulnotificationsbluefaname'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": -1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 0,
+                    "minimumElasticInstanceCount": 0
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulnotificationsfaname')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            "tags": {
+            },
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulnotificationsfaname'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulnotificationsfaname'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": 1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 0,
+                    "minimumElasticInstanceCount": 0
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulnotificationsgreenfaname')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            "tags": {
+            },
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulnotificationsgreenfaname'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulnotificationsgreenfaname'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": -1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 0,
+                    "minimumElasticInstanceCount": 0
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulnuifabluename')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            "tags": {
+            },
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulnuifabluename'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulnuifabluename'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": 1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 0,
+                    "minimumElasticInstanceCount": 1
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('mulnuifagreenname')]",
+            "location": "East US 2",
+            "dependsOn": [
+            ],
+            "tags": {
+            },
+            "kind": "functionapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('mulnuifagreenname'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('mulnuifagreenname'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[variables('mulfunctionappaspid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": 1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 0,
+                    "minimumElasticInstanceCount": 1
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Cache/redisEnterprise",
+            "apiVersion": "2021-08-01",
+            "name": "[variables('redisname')]",
+            "location": "[parameters('azure_location')]",
+            
+            "sku": {
+                "name": "Enterprise_E10",
+                "capacity": 2
+            },
+            "zones": [
+                "1"
+            ],
+            "properties": {
+                "minimumTlsVersion": "1.2"
+            }
+        },
+        
+                {
+            "type": "Microsoft.SignalRService/WebPubSub",
+            "apiVersion": "2021-10-01",
+            "name": "[variables('webpubsubservice')]",
+            "location": "eastus",
+            
+            "sku": {
+                "name": "Standard_S1",
+                "tier": "Standard",
+                "size": "S1",
+                "capacity": 1
+            },
+            "properties": {
+                "tls": {
+                    "clientCertEnabled": false
+                },
+                "networkACLs": {
+                    "defaultAction": "Allow",
+                    "publicNetwork": {
+                        "allow": [],
+                        "deny": []
+                    },
+                    "privateEndpoints": []
+                },
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false,
+                "disableAadAuth": false
+            }
+        }
+
+
+        
+        
+        
+    ]
+}
