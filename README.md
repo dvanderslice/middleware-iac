@@ -1,4 +1,4 @@
-![Control Tower Logical](/terraform/azure/images/logical.png)
+![Control Tower Logical](/terraform-test/azure/images/logical.png)
 
 # Environment as a Service Deployment of Azure Control Tower
 
