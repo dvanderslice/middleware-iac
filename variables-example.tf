@@ -60,12 +60,12 @@ variable "tags" {
   type        = map(string)
   default = {
     "application" = "foundations"
-    "contact"     = "dl-global-digitalsolutions-dev@dematic.com"
+    "contact"     = "dl-global-digitalsolutions-dev@example.com"
     "costcenter"  = "550164"
-    "createdby"   = "digitalsolutions-rd@dematic.com"
+    "createdby"   = "digitalsolutions-rd@example.com"
     "customer"    = "digitalsolutions"
     "lifetime"    = "perpetual"
-    "owner"       = "jason.higgs@dematic.com"
+    "owner"       = ""
     "program"     = "CS Growth"
     "project"     = "Insights NextGen"
   }
